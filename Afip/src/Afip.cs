@@ -1,22 +1,25 @@
 ﻿using System;
+using System.Xml;
+using System.Net;
+using System.IO;
 
 namespace LibreriaAfip
 {
     public class Afip
     {
 
-        string WSAA_WSDL;
-        string WSAA_URL;
-        string CERT;
-        string PRIVATEKEY;
-        string PASSPHRASE;
-        string RES_FOLDER;
-        string TA_FOLDER;
-        int SOAP_VERSION;
-        long CUIT;
-        bool PRODUCTION;
-        bool EXCEPTIONS;
-        ElectronicBilling electronicBilling = new ElectronicBilling();
+        public string WSAA_WSDL;
+        public string WSAA_URL;
+        public string CERT;
+        public string PRIVATEKEY;
+        public string PASSPHRASE;
+        public string RES_FOLDER;
+        public string TA_FOLDER;
+        public int SOAP_VERSION;
+        public long CUIT;
+        public bool PRODUCTION;
+        public bool EXCEPTIONS;
+        public ElectronicBilling electronicBilling;
 
         public Afip(string WSAA_WSDL, string WSAA_URL, string CERT, string PRIVATEKEY, string PASSPHRASE, string RES_FOLDER, string TA_FOLDER, long CUIT, bool PRODUCTION, bool EXCEPTIONS, int SOAP_VERSION)
         {
@@ -31,24 +34,77 @@ namespace LibreriaAfip
             this.CUIT = CUIT;
             this.PRODUCTION = PRODUCTION;
             this.EXCEPTIONS = EXCEPTIONS;
+            this.electronicBilling = new ElectronicBilling(this);
         }
 
     }
     public class ElectronicBilling
     {
-        public int executeRequest(string operation, Object[] req)
+        public Afip afip;
+        public ElectronicBilling(Afip afip)
         {
-            return 666;
+            this.afip = afip;
         }
-        public int getLastBill(int sales_point, int type)
+
+        public void executeRequest(string operation, Object[] req)
+        {
+            string endpoint = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx";
+            XmlDocument soapEnvelopeXml = createSoapEnvolope(operation);
+            HttpWebRequest webRequest = createWebRequest(endpoint, endpoint + "?op=" + operation);
+            insertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
+
+            IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
+
+            asyncResult.AsyncWaitHandle.WaitOne();
+
+            string soapResult;
+
+            using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
+            {
+                using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    soapResult = reader.ReadToEnd();
+                }
+                Console.WriteLine(soapResult);
+            }               
+        }
+
+        private HttpWebRequest createWebRequest(string url, string operation)
+        {
+            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            webRequest.Headers.Add("SOAPAction", operation);
+            webRequest.ContentType = "text/xml;charset=\"utf-8\"";
+            webRequest.Accept = "text/xml";
+            webRequest.Method = "POST";
+            return webRequest;
+        }
+
+        private XmlDocument createSoapEnvolope(string operation)
+        {
+            XmlDocument soapEnvelopeDocument = new XmlDocument();
+            string request = File.ReadAllText(@"\src\XMLs\" + operation + ".xml");
+            soapEnvelopeDocument.LoadXml(request);
+            return soapEnvelopeDocument;
+        }
+
+        private void insertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXML, HttpWebRequest webRequest)
+        {
+            using (Stream stream = webRequest.GetRequestStream())
+            {
+                soapEnvelopeXML.Save(stream);
+            }
+        }
+
+        public void getLastBill(int sales_point, int type)
         {
             Object[] salesPoint = new Object[2] { "ptoVenta", sales_point };
             Object[] billType = new Object[2] { "CbteTipo", type };
             Object[] req = new Object[2] { salesPoint, billType };
 
 
-            return this.executeRequest("FECompUltimoAutorizado", req);
+            this.executeRequest("FECompUltimoAutorizado", req);
         }
+        
         
     }
 
