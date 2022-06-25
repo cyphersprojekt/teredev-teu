@@ -31,6 +31,7 @@ namespace LibreriaAfip
         public bool PRODUCTION;
         public bool EXCEPTIONS;
         public ElectronicBilling electronicBilling;
+        public CertHelper certHelper;
 
 
         //WSAA variables needed to send requests to WSN
@@ -65,6 +66,7 @@ namespace LibreriaAfip
         {
             string xmlLoginTemplate = "<loginTicketRequest><header><uniqueId></uniqueId><generationTime></generationTime><expirationTime></expirationTime></header><service></service></loginTicketRequest>";
             _globalUniqueID += 1;
+            
             //nodes to be modified in template
             XmlNode xmlNodeUniqueId = default(XmlNode);
             XmlNode xmlNodeGenerationTime = default(XmlNode);
@@ -81,59 +83,74 @@ namespace LibreriaAfip
             xmlNodeGenerationTime.InnerText = DateTime.Now.AddMinutes(-10).ToString("s");
             xmlNodeExpirationTime.InnerText = DateTime.Now.AddMinutes(+10).ToString("s");
             xmlNodeUniqueId.InnerText = Convert.ToString(_globalUniqueID);
-            xmlNodeService.InnerText = "wsfe";                                                     
+            xmlNodeService.InnerText = "wsfe";
 
             // Signing our request with out crt and creating a base64 string out of it
-            X509Certificate2 cert = new X509Certificate2(File.ReadAllBytes(CERT)); 
+            
+            // Creating cert needed for signing
+            X509Certificate2 cert = certHelper.GetCert(CERT);
 
 
-
-
+            // Converting final xml into bytes
             Encoding encodedMsg = Encoding.UTF8;
             byte[] msgBytes = encodedMsg.GetBytes(xmlLoginRequest.OuterXml);
 
-            ContentInfo infoContent = new ContentInfo(msgBytes);
-            SignedCms signedCms = new SignedCms(infoContent);
+            // Signing bytes with cert and creating a CMS
+            byte[] encodedSignedMsg = certHelper.SignMsg(cert, msgBytes);
 
 
-            CmsSigner cmsSigner = new CmsSigner(cert);
-            cmsSigner.IncludeOption = X509IncludeOption.EndCertOnly;
+            // Converting CMS into Base64String
+            string base64SignedMsg = Convert.ToBase64String(encodedSignedMsg);
 
-            signedCms.ComputeSignature(cmsSigner);
-
-            byte[] encodedSignedCms = signedCms.Encode();
-
-            string base64SignedCms = Convert.ToBase64String(encodedSignedCms);
-
+            // Creating SOAP client and login request
             LoginCMSClient client = new LoginCMSClient();
-
-            loginCmsRequestBody body = new loginCmsRequestBody(base64SignedCms);
-
+            loginCmsRequestBody body = new loginCmsRequestBody(base64SignedMsg);
             loginCmsRequest request = new loginCmsRequest(body);
 
-            loginCmsResponse response = client.loginCms(request);
+            // Sending request
+            loginCmsResponse response = client.loginCms(request);        
             
             
 
-
-
-
-            // Reading response from WSAA and filling Afip's security variables
-
+            // Reading response from WSAA and storing it in machine
             XmlDocument xmlLoginResponse = new XmlDocument();
-            xmlLoginResponse.LoadXml(response.ToString());
-
+            xmlLoginResponse.LoadXml(response.Body.loginCmsReturn);
             xmlLoginResponse.Save(@"C:\Users\54112\Desktop\response.xml");
 
-
+            // Extracting info from respone
             uniqueId = UInt32.Parse(xmlLoginResponse.SelectSingleNode("//uniqueId").InnerText);
             generationTime = DateTime.Parse(xmlLoginResponse.SelectSingleNode("//generationTime").InnerText);
             expirationTime = DateTime.Parse(xmlLoginResponse.SelectSingleNode("//expirationTime").InnerText);
             sign = xmlLoginResponse.SelectSingleNode("//sign").InnerText;
             token = xmlLoginResponse.SelectSingleNode("//token").InnerText;
-
-
         }
+
+        public class CertHelper {
+            public X509Certificate2 GetCert(string filePath)
+            {
+                X509Certificate2 cert =  new X509Certificate2(File.ReadAllBytes(filePath));
+                return cert;
+            }
+
+            public byte[] SignMsg(X509Certificate2 cert, byte[] msg)
+            {
+                //Converting from bytes to CMS
+                ContentInfo infoContent = new ContentInfo(msg);
+                SignedCms signedCms = new SignedCms(infoContent);
+
+                // Creating a signer with cert
+                CmsSigner cmsSigner = new CmsSigner(cert);
+                cmsSigner.IncludeOption = X509IncludeOption.EndCertOnly;
+
+                //Signing
+                signedCms.ComputeSignature(cmsSigner);
+
+                // Converting to bytes again
+                byte[] encodedSignedCms = signedCms.Encode();
+                return encodedSignedCms;
+            }
+        }
+
         public class ElectronicBilling
         {
             public long CUIT;
