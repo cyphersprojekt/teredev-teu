@@ -1,0 +1,20 @@
+﻿{
+  "ProviderId": "Microsoft.VisualStudio.ConnectedService.Wcf",
+  "Version": "15.0.40203.910",
+  "ExtendedData": {
+    "inputs": [
+      "https://wsaahomo.afip.gov.ar/ws/services/LoginCms?wsdl"
+    ],
+    "collectionTypes": [
+      "System.Array",
+      "System.Collections.Generic.Dictionary`2"
+    ],
+    "messageContract": true,
+    "namespaceMappings": [
+      "*, Login"
+    ],
+    "sync": true,
+    "targetFramework": "net5.0",
+    "typeReuseMode": "None"
+  }
+}

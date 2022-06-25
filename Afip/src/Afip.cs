@@ -10,7 +10,8 @@ using System.Security.Cryptography.Pkcs;
 using System.Web;
 using System.Xml.Serialization;
 using System.ComponentModel;
-
+using System.Xml.Linq;
+using Login;
 
 namespace LibreriaAfip
 {
@@ -35,7 +36,6 @@ namespace LibreriaAfip
         //WSAA variables needed to send requests to WSN
         // Maybe this variables wont be here, need to test
         private UInt32 _globalUniqueID = 0;
-        public string XML_LOGIN_REQUEST_TEMPLATE = "<loginTicketRequest><header><uniqueId></uniqueId><generationTime></generationTime><expirationTime></expirationTime></header><service></service></loginTicketRequest>";
         UInt32 uniqueId;
         DateTime generationTime;
         DateTime expirationTime;
@@ -43,36 +43,37 @@ namespace LibreriaAfip
         string token;
 
 
-        public Afip(string WSAA_WSDL, string WSAA_URL, string CERT, string PRIVATEKEY, string PASSPHRASE, string RES_FOLDER, string TA_FOLDER, long CUIT, bool PRODUCTION, bool EXCEPTIONS, int SOAP_VERSION)
-        {
-            this.WSAA_WSDL = WSAA_WSDL;
-            this.WSAA_URL = WSAA_URL;
-            this.CERT = CERT;
-            this.PRIVATEKEY = PRIVATEKEY;
-            this.SOAP_VERSION = SOAP_VERSION;
-            this.PASSPHRASE = PASSPHRASE;
-            this.RES_FOLDER = RES_FOLDER;
-            this.TA_FOLDER = TA_FOLDER;
-            this.CUIT = CUIT;
-            this.PRODUCTION = PRODUCTION;
-            this.EXCEPTIONS = EXCEPTIONS;
-            this.electronicBilling = new ElectronicBilling(CUIT, PRODUCTION, SOAP_VERSION, WSAA_WSDL, WSAA_URL);
-        }
+        //public Afip(string WSAA_WSDL, string WSAA_URL, string CERT, string PRIVATEKEY, string PASSPHRASE, string RES_FOLDER, string TA_FOLDER, long CUIT, bool PRODUCTION, bool EXCEPTIONS, int SOAP_VERSION)
+        //{
+        //    this.WSAA_WSDL = WSAA_WSDL;
+        //    this.WSAA_URL = WSAA_URL;
+        //    this.CERT = CERT;
+        //    this.PRIVATEKEY = PRIVATEKEY;
+        //    this.SOAP_VERSION = SOAP_VERSION;
+        //    this.PASSPHRASE = PASSPHRASE;
+        //    this.RES_FOLDER = RES_FOLDER;
+        //    this.TA_FOLDER = TA_FOLDER;
+        //    this.CUIT = CUIT;
+        //    this.PRODUCTION = PRODUCTION;
+        //    this.EXCEPTIONS = EXCEPTIONS;
+        //    this.electronicBilling = new ElectronicBilling(CUIT, PRODUCTION, SOAP_VERSION, WSAA_WSDL, WSAA_URL);
+        //}
 
 
         // Accesing WSAA and retrieving Token and Sign to access WSN. This will probably be refactored into multiple functions as it should stay static but is painful to read.
-        public void LogIn(string service)
+        public void LogIn() //service would be "wsfe" here
         {
+            string xmlLoginTemplate = "<loginTicketRequest><header><uniqueId></uniqueId><generationTime></generationTime><expirationTime></expirationTime></header><service></service></loginTicketRequest>";
             _globalUniqueID += 1;
             //nodes to be modified in template
             XmlNode xmlNodeUniqueId = default(XmlNode);
             XmlNode xmlNodeGenerationTime = default(XmlNode);
             XmlNode xmlNodeExpirationTime = default(XmlNode);
             XmlNode xmlNodeService = default(XmlNode);
-            XmlDocument xmlLoginRequest = default(XmlDocument);
+            XmlDocument xmlLoginRequest = new XmlDocument();
 
             //filling the nodes with info
-            xmlLoginRequest.LoadXml(XML_LOGIN_REQUEST_TEMPLATE);
+            xmlLoginRequest.LoadXml(xmlLoginTemplate);
             xmlNodeUniqueId = xmlLoginRequest.SelectSingleNode("//uniqueId");
             xmlNodeGenerationTime = xmlLoginRequest.SelectSingleNode("//generationTime");
             xmlNodeExpirationTime = xmlLoginRequest.SelectSingleNode("//expirationTime");
@@ -80,11 +81,13 @@ namespace LibreriaAfip
             xmlNodeGenerationTime.InnerText = DateTime.Now.AddMinutes(-10).ToString("s");
             xmlNodeExpirationTime.InnerText = DateTime.Now.AddMinutes(+10).ToString("s");
             xmlNodeUniqueId.InnerText = Convert.ToString(_globalUniqueID);
-            xmlNodeService.InnerText = service;                                                     /// TO DO, i have no clue the format this input should have!!!!
+            xmlNodeService.InnerText = "wsfe";                                                     
 
             // Signing our request with out crt and creating a base64 string out of it
-            X509Certificate2 cert = new X509Certificate2();
-            cert.Import(File.ReadAllBytes(CERT));
+            X509Certificate2 cert = new X509Certificate2(File.ReadAllBytes(CERT)); 
+
+
+
 
             Encoding encodedMsg = Encoding.UTF8;
             byte[] msgBytes = encodedMsg.GetBytes(xmlLoginRequest.OuterXml);
@@ -102,22 +105,33 @@ namespace LibreriaAfip
 
             string base64SignedCms = Convert.ToBase64String(encodedSignedCms);
 
-            // Sending request to WSAA 
+            LoginCMSClient client = new LoginCMSClient();
+
+            loginCmsRequestBody body = new loginCmsRequestBody(base64SignedCms);
+
+            loginCmsRequest request = new loginCmsRequest(body);
+
+            loginCmsResponse response = client.loginCms(request);
+            
+            
 
 
 
-            string LoginResponse = "test";                                                                             // Missing actual web request client here. TO DO
 
             // Reading response from WSAA and filling Afip's security variables
 
             XmlDocument xmlLoginResponse = new XmlDocument();
-            xmlLoginResponse.LoadXml(LoginResponse);
+            xmlLoginResponse.LoadXml(response.ToString());
+
+            xmlLoginResponse.Save(@"C:\Users\54112\Desktop\response.xml");
+
 
             uniqueId = UInt32.Parse(xmlLoginResponse.SelectSingleNode("//uniqueId").InnerText);
             generationTime = DateTime.Parse(xmlLoginResponse.SelectSingleNode("//generationTime").InnerText);
             expirationTime = DateTime.Parse(xmlLoginResponse.SelectSingleNode("//expirationTime").InnerText);
             sign = xmlLoginResponse.SelectSingleNode("//sign").InnerText;
             token = xmlLoginResponse.SelectSingleNode("//token").InnerText;
+
 
         }
         public class ElectronicBilling
