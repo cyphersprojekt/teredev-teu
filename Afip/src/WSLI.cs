@@ -50,7 +50,7 @@ namespace LibreriaAfip
 
             xmlNodeUniqueId.InnerText = Convert.ToString(_globalUniqueID);
             xmlNodeGenerationTime.InnerText = DateTime.Now.AddMinutes(-10).ToString("s");
-            xmlNodeExpirationTime.InnerText = DateTime.Now.AddHours(24).ToString("s");
+            xmlNodeExpirationTime.InnerText = DateTime.Now.AddMinutes(+10).ToString("s");
             xmlNodeService.InnerText = "wsfe";
 
             // Saving request for debugging

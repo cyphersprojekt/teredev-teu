@@ -4,87 +4,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ElectronicBilling;
+using System.Web;
+using System.Net;
+using System.IO;
+using System.Xml;
 
-namespace LibreriaAfip.src
+namespace LibreriaAfip
 {
     public class WSEB
     {
-        public long CUIT;
-        public string WSAA_URL;
+        // Deleted all fields, add as needed
+        
 
-        public void dummy()
+        public void dummy() // Dummy method to test soap client against afip wsfev1
         {
-            
+            var url = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx";
+            XmlDocument response = new XmlDocument();
 
+            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpRequest.Method = "POST";
+            httpRequest.ContentType = "text/xml;charset=utf-8";
+
+            XmlDocument template = new XmlDocument();
+            template.LoadXml(File.ReadAllText(@"E:\Source\teredev-teu\Afip\src\XMLs\dummy.xml"));
+
+            string data = template.OuterXml;
+
+            using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
+            {
+                streamWriter.Write(data);
+            }
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
             
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                var result = streamReader.ReadToEnd();
+                response.LoadXml(result);
+            }
+            response.Save(@"C:\Users\54112\Desktop\dummyResponse.xml");           
+
+
         }
-
-
-        // General executor, takes xmls paths, inputs and type of operation to create appropiate requests
-        //public void ExecuteRequest(string operation, Object[] req)
-        //{
-        //    string endpoint = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx";
-        //    XmlDocument soapEnvelopeXml = CreateSoapEnvolope(operation);
-        //    HttpWebRequest webRequest = CreateWebRequest(endpoint, endpoint + "?op=" + operation);
-        //    InsertSoapEnvelopeIntoWebRequest(soapEnvelopeXml, webRequest);
-
-        //    IAsyncResult asyncResult = webRequest.BeginGetResponse(null, null);
-
-        //    asyncResult.AsyncWaitHandle.WaitOne();
-
-        //    string soapResult;
-
-        //    using (WebResponse webResponse = webRequest.EndGetResponse(asyncResult))
-        //    {
-        //        using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
-        //        {
-        //            soapResult = reader.ReadToEnd();
-        //        }
-        //        Console.WriteLine(soapResult);
-        //    }
-        //}
-
-
-        //// Methods required to create a web request from xml
-        //private HttpWebRequest CreateWebRequest(string url, string operation)
-        //{
-        //    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-        //    webRequest.Headers.Add("SOAPAction", operation);
-        //    webRequest.ContentType = "text/xml;charset=\"utf-8\"";
-        //    webRequest.Accept = "text/xml";
-        //    webRequest.Method = "POST";
-        //    return webRequest;
-        //}
-
-        //private XmlDocument CreateSoapEnvolope(string operation)
-        //{
-        //    XmlDocument soapEnvelopeDocument = new XmlDocument();
-        //    string request = File.ReadAllText(@"\src\XMLs\" + operation + ".xml");
-        //    soapEnvelopeDocument.LoadXml(request);
-        //    return soapEnvelopeDocument;
-        //}
-
-        //private void InsertSoapEnvelopeIntoWebRequest(XmlDocument soapEnvelopeXML, HttpWebRequest webRequest)
-        //{
-        //    using (Stream stream = webRequest.GetRequestStream())
-        //    {
-        //        soapEnvelopeXML.Save(stream);
-        //    }
-        //}
-
-
-
-        //// First method to test of the WS
-        //public void GetLastBill(int sales_point, int type)
-        //{
-        //    Object[] salesPoint = new Object[2] { "ptoVenta", sales_point };
-        //    Object[] billType = new Object[2] { "CbteTipo", type };
-        //    Object[] req = new Object[2] { salesPoint, billType };
-
-
-        //    this.ExecuteRequest("FECompUltimoAutorizado", req);
-        //}
-
 
     }
 }

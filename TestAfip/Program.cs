@@ -6,15 +6,18 @@ namespace TestAfip
     {
         static void Main(string[] args)
         {
-            WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\proyectoAfip\\cert.pfx"};
+            //WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\proyectoAfip\\cert.pfx"};
             var watch = new System.Diagnostics.Stopwatch();
+            //watch.Start();
+            //wsli.LogIn();
+            //watch.Stop();
+            //Console.WriteLine($"Log in attempt took {watch.ElapsedMilliseconds} ms");
+
+            WSEB wseb = new WSEB();
             watch.Start();
-            wsli.LogIn();
+            wseb.dummy();
             watch.Stop();
-            Console.WriteLine($"Log in attempt took {watch.ElapsedMilliseconds} ms");
-
-
-
+            Console.WriteLine($"dummy request attempt took {watch.ElapsedMilliseconds} ms");
         }
     }
 }
