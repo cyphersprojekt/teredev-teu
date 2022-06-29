@@ -6,8 +6,9 @@ namespace TestAfip
     {
         static void Main(string[] args)
         {
-            //WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\proyectoAfip\\cert.pfx"};
             var watch = new System.Diagnostics.Stopwatch();
+
+            //WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\proyectoAfip\\cert.pfx" }; 
             //watch.Start();
             //wsli.LogIn();
             //watch.Stop();
@@ -15,7 +16,7 @@ namespace TestAfip
 
             WSEB wseb = new WSEB();
             watch.Start();
-            wseb.dummy();
+            wseb.GetPointOfSale();
             watch.Stop();
             Console.WriteLine($"dummy request attempt took {watch.ElapsedMilliseconds} ms");
         }
