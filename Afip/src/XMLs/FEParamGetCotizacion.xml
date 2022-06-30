@@ -1,0 +1,15 @@
+﻿<soapenv:Envelope
+xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:ar="http://ar.gov.afip.dif.FEV1/">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<ar:FEParamGetCotizacion>
+			<ar:Auth>
+				<ar:Token>string</ar:Token>
+				<ar:Sign>string</ar:Sign>
+				<ar:Cuit>long</ar:Cuit>
+			</ar:Auth>
+			<ar:MonId>string</ar:MonId>
+		</ar:FEParamGetCotizacion>
+	</soapenv:Body>
+</soapenv:Envelope>
