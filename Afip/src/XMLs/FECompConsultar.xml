@@ -1,0 +1,19 @@
+﻿<soapenv:Envelope
+xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:ar="http://ar.gov.afip.dif.FEV1/">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<ar:FECompConsultar>
+			<ar:Auth>
+				<ar:Token>string</ar:Token>
+				<ar:Sign>string</ar:Sign>
+				<ar:Cuit>long</ar:Cuit>
+			</ar:Auth>
+			<ar:FeCompConsReq>
+				<ar:CbteTipo>int</ar:CbteTipo>
+				<ar:CbteNro>long</ar:CbteNro>
+				<ar:PtoVta>int</ar:PtoVta>
+			</ar:FeCompConsReq>
+		</ar:FECompConsultar>
+	</soapenv:Body>
+</soapenv:Envelope>
