@@ -34,6 +34,48 @@ xmlns:ar="http://ar.gov.afip.dif.FEV1/">
 						<ar:FchVtoPago>string</ar:FchVtoPago>
 						<ar:MonId>string</ar:MonId>
 						<ar:MonCotiz>double</ar:MonCotiz>
+						<ar:CbtesAsoc>
+							<ar:CbteAsoc>
+								<ar:Tipo>short</ar:Tipo>
+								<ar:PtoVta>int</ar:PtoVta>
+								<ar:Nro>Long</ar:Nro>
+								<ar:Cuit>String</ar:Cuit>
+								<ar:CbteFch>String</ar:CbteFch>
+							</ar:CbteAsoc>
+						</ar:CbtesAsoc>
+						<ar:Tributos>
+							<ar:Tributo>
+								<ar:Id>short</ar:Id>
+								<ar:Desc>string</ar:Desc>
+								<ar:BaseImp>double</ar:BaseImp>
+								<ar:Alic>double</ar:Alic>
+								<ar:Importe>double</ar:Importe>
+							</ar:Tributo>
+						</ar:Tributos>
+						<ar:Iva>
+							<ar:AlicIva>
+								<ar:Id>short</ar:Id>
+								<ar:BaseImp>double</ar:BaseImp>
+								<ar:Importe>double</ar:Importe>
+							</ar:AlicIva>
+						</ar:Iva>
+						<ar:Opcionales>
+							<ar:Opcional>
+								<ar:Id>string</ar:Id>
+								<ar:Valor>string</ar:Valor>
+							</ar:Opcional>
+						</ar:Opcionales>
+						<ar:Compradores>
+							<ar:Comprador>
+								<ar:DocTipo>int</ar:DocTipo>
+								<ar:DocNro>Long</ar:DocNro>
+								<ar:Porcentaje>double</ar:Porcentaje>
+							</ar:Comprador>
+						</ar:Compradores>
+						<ar:PeriodoAsoc>
+							<ar:FchDesde>string</ar:FchDesde>
+							<ar:FchHasta>string</ar:FchHasta>
+						</ar:PeriodoAsoc>
 					</ar:FECAEDetRequest>
 				</ar:FeDetReq>
 			</ar:FeCAEReq>
