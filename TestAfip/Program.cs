@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using LibreriaAfip;
+using Serilog;
 namespace TestAfip
 {
     class Program
     {
         static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
             var watch = new System.Diagnostics.Stopwatch();
 
             Dictionary<string, string> inputData = new Dictionary<string, string>();
@@ -42,24 +45,26 @@ namespace TestAfip
             // FECompUltimoAutorizado - FECompConsultar - FEParamGetPtosVenta - FECAESolicitar
             //
 
-            WSEB wseb = new WSEB();
-            watch.Start();
-            wseb.executeOperation(inputData, "FECAESolicitar");
-            watch.Stop();
-            Console.WriteLine($"request attempt took {watch.ElapsedMilliseconds} ms");
-
-
-            //WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\certs\\cert.pfx" };
+            //WSEB wseb = new WSEB();
             //watch.Start();
-            //wsli.LogIn();
+            //wseb.executeOperation(inputData, "FECAESolicitar");
             //watch.Stop();
-            //Console.WriteLine($"Log in attempt took {watch.ElapsedMilliseconds} ms");
+            //Console.WriteLine($"request attempt took {watch.ElapsedMilliseconds} ms");
+
+
+            WSLI wsli = new WSLI() { CERT = "C:\\Users\\54112\\Desktop\\certs\\cert.pfx"};
+            watch.Start();
+            wsli.LogIn();
+            watch.Stop();
+            Console.WriteLine($"Log in attempt took {watch.ElapsedMilliseconds} ms");
 
             //WSEB wseb = new WSEB();
             //watch.Start();
             //wseb.GetCurrencyPrice();
             //watch.Stop();
             //Console.WriteLine($"request attempt took {watch.ElapsedMilliseconds} ms");
+
+            Console.ReadLine();
         }
     }
 }

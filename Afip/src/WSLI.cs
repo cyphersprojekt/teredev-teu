@@ -12,6 +12,7 @@ using System.Xml.Serialization;
 using System.ComponentModel;
 using System.Xml.Linq;
 using Login;
+using Serilog;
 
 namespace LibreriaAfip
 {
@@ -32,7 +33,7 @@ namespace LibreriaAfip
         {
             string xmlLoginTemplate = "<loginTicketRequest><header><uniqueId></uniqueId><generationTime></generationTime><expirationTime></expirationTime></header><service></service></loginTicketRequest>";
             _globalUniqueID += 1;
-            
+
             //nodes to be modified in template
             XmlNode xmlNodeUniqueId = default(XmlNode);
             XmlNode xmlNodeGenerationTime = default(XmlNode);
@@ -57,7 +58,7 @@ namespace LibreriaAfip
             xmlLoginRequest.Save(@"C:\Users\54112\Desktop\request.xml");
 
             // Signing our request with out crt and creating a base64 string out of it
-            
+
             // Creating cert needed for signing
             X509Certificate2 cert = certHelper.GetCert(CERT);
 
@@ -79,9 +80,9 @@ namespace LibreriaAfip
             loginCmsRequest request = new loginCmsRequest(body);
 
             // Sending request
-            loginCmsResponse response = client.loginCms(request);        
-            
-           
+            loginCmsResponse response = client.loginCms(request);
+
+
 
             // Reading response from WSAA and storing it in machine
             XmlDocument xmlLoginResponse = new XmlDocument();
@@ -94,6 +95,12 @@ namespace LibreriaAfip
             expirationTime = DateTime.Parse(xmlLoginResponse.SelectSingleNode("//expirationTime").InnerText);
             sign = xmlLoginResponse.SelectSingleNode("//sign").InnerText;
             token = xmlLoginResponse.SelectSingleNode("//token").InnerText;
+
+            if(sign != null && token != null)
+            {
+                Log.Information("Correctly signed in into WSAA at {GenerationTime}, until {ExpirationTime}.", generationTime, expirationTime);
+            }
+        
         }
 
         public class CertHelper {

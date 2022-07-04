@@ -7,6 +7,7 @@ using System.Web;
 using System.Net;
 using System.IO;
 using System.Xml;
+using Serilog;
 
 namespace LibreriaAfip
 {
