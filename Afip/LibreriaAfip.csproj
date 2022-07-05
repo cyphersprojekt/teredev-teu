@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.11.0" />
+    <PackageReference Include="Serilog.Expressions" Version="3.4.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
     <PackageReference Include="System.Private.ServiceModel" Version="4.9.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="6.0.1" />

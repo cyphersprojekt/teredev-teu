@@ -106,7 +106,28 @@ namespace LibreriaAfip
         public class CertHelper {
             public X509Certificate2 GetCert(string filePath)
             {
-                X509Certificate2 cert =  new X509Certificate2(File.ReadAllBytes(filePath));
+                if (!File.Exists(filePath))
+                {
+                    throw new FileNotFoundException();
+                }
+                X509Certificate2 cert = new X509Certificate2();
+                try
+                {
+                    cert = new X509Certificate2(File.ReadAllBytes(filePath));                    
+                }
+                catch (FileNotFoundException ex)
+                {
+                    Console.WriteLine("Certificate file for selected operation was not found", ex.Message);
+
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine("Certificate file could not be accessed", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error while trying to create cert", ex.Message);
+                }
                 return cert;
             }
 

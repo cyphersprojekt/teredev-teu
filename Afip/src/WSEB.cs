@@ -8,6 +8,7 @@ using System.Net;
 using System.IO;
 using System.Xml;
 using Serilog;
+using Serilog.Templates;
 
 namespace LibreriaAfip
 {
@@ -18,7 +19,7 @@ namespace LibreriaAfip
 
         string mainUrl = "https://wswhomo.afip.gov.ar/wsfev1/service.asmx";
         
-        public void executeOperation(Dictionary<string, string> input, string operation)
+        public void executeOperation(Data input, string operation)
         {
             string templatePaths = @"E:\Source\teredev-teu\Afip\src\XMLs\" + operation + ".xml";
 
@@ -44,7 +45,7 @@ namespace LibreriaAfip
 
 
         // Auxiliary methods
-        static private XmlDocument EditRequest(XmlDocument request, Dictionary<string, string> data)
+        static private XmlDocument EditRequest(XmlDocument request, Data data)
         {
             if (data == null)
             {
@@ -90,7 +91,9 @@ namespace LibreriaAfip
                 {
                     if (node != null)
                     {
-                        node.InnerText = data[node.LocalName];
+                        // Getting the property from data equal to a node name is done here by reflection: I have no clue how good/bad this is or what kind of exceptions could this cause
+                        var value = data.GetType().GetProperty(node.LocalName).GetValue(data, null);
+                        node.InnerText = value.ToString();                        
                     }
                 }                
             }
@@ -105,6 +108,7 @@ namespace LibreriaAfip
             return request;
 
         }
+
         static private XmlDocument LoadTemplate(string path)
         {
             XmlDocument template = new XmlDocument();
